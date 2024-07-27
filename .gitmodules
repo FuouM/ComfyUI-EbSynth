@@ -1,0 +1,3 @@
+[submodule "Ezsynth"]
+	path = Ezsynth
+	url = https://github.com/FuouM/Ezsynth
