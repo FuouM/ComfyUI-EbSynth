@@ -11,6 +11,17 @@ def tensor_to_cv2(image: torch.Tensor):
     return np_array
 
 
+def to_np(tsr: torch.Tensor) -> np.ndarray:
+    np_arr = tsr.cpu().numpy()
+    np_arr = (np_arr * 255).astype(np.uint8)
+    np_arr = cv2.cvtColor(np_arr, cv2.COLOR_RGB2BGR)
+    return np_arr
+
+
+def batched_tensor_to_cv2_list(tensor_imgs: torch.Tensor) -> list[np.ndarray]:
+    return [to_np(tsr) for tsr in tensor_imgs]
+
+
 def cv2_to_tensor(np_array: np.ndarray):
     np_array = cv2.cvtColor(np_array, cv2.COLOR_BGR2RGB)
     np_array = np_array.astype(np.float32) / 255.0
@@ -18,12 +29,13 @@ def cv2_to_tensor(np_array: np.ndarray):
     tensor = tensor.unsqueeze(0)
     return tensor
 
+
 def video_tensor_to_cv2(images: torch.Tensor):
     # Scale to 0-255 range
     images = (images * 255).byte()
-    
+
     # Swap color channels (RGB to BGR)
     images = images[:, [2, 1, 0], :, :]
-    
+
     # Convert to list of numpy arrays
     return [frame.cpu().numpy() for frame in images]
