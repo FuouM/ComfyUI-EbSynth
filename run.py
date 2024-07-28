@@ -9,15 +9,21 @@ import cv2
 import numpy as np
 import torch
 
+from .constants import EBTYPES, MAX_GUIDES, ONLY_DEFAULT_MODE, ONLY_MODES
+from .Ezsynth.ezsynth.aux_classes import RunConfig
+from .Ezsynth.ezsynth.constants import (
+    DEFAULT_EDGE_METHOD,
+    DEFAULT_FLOW_MODEL,
+    EDGE_METHODS,
+    FLOW_MODELS,
+)
+from .Ezsynth.ezsynth.main_ez import EzsynthBase, ImageSynthBase
 from .utils import (
     batched_tensor_to_cv2_list,
-    cv2_to_tensor,
-    tensor_to_cv2,
-    video_tensor_to_cv2,
+    cv2_img_to_tensor,
+    out_video,
+    process_msk_lst,
 )
-
-from .Ezsynth.ezsynth.main_ez import ImageSynthBase
-from .Ezsynth.ezsynth.aux_classes import RunConfig
 
 
 def create_guide_arg(i: int):
@@ -31,7 +37,7 @@ def create_guide_arg(i: int):
     }
 
 
-def build_guide_args(max_guides=7):
+def build_guide_args(max_guides=MAX_GUIDES):
     required = create_guide_arg(0)
     optional = dict()
     for i in range(1, max_guides):
@@ -63,7 +69,7 @@ class ES_Guides7:
         tgt_imgs = []
         weights = []
 
-        for i in range(7):
+        for i in range(MAX_GUIDES):
             src_key = f"src_img_{i}"
             tgt_key = f"tgt_img_{i}"
             weight_key = f"weight_{i}"
@@ -82,25 +88,18 @@ class ES_Guides7:
 class ES_Translate:
     @classmethod
     def INPUT_TYPES(s):
+        required = {
+            "style_image": ("IMAGE",),
+            "source_image": ("IMAGE",),
+            "target_image": ("IMAGE",),
+            "weight": (
+                "FLOAT",
+                {"default": 0.9, "min": 0.1},
+            ),
+        }
+        required.update(EBTYPES)
         return {
-            "required": {
-                "style_image": ("IMAGE",),
-                "source_image": ("IMAGE",),
-                "target_image": ("IMAGE",),
-                "weight": (
-                    "FLOAT",
-                    {"default": 0.9, "min": 0.1},
-                ),
-                "uniformity": (
-                    "FLOAT",
-                    {"default": 3500.0, "min": 500.0, "max": 15000.0},
-                ),
-                "patch_size": ("INT", {"default": 5, "min": 3, "step": 2}),
-                "pyramid_levels": ("INT", {"default": 6, "min": 1, "step": 1}),
-                "search_vote_iters": ("INT", {"default": 12, "min": 1, "step": 1}),
-                "patch_match_iters": ("INT", {"default": 6, "min": 1, "step": 1}),
-                "extra_pass_3x3": ("BOOLEAN", {"default": True}),
-            },
+            "required": required,
             "optional": {
                 "src_imgs": ("IMAGE",),
                 "tgt_imgs": ("IMAGE",),
@@ -139,9 +138,9 @@ class ES_Translate:
         print(f"{source_image.shape=}")
         print(f"{target_image.shape=}")
 
-        style_img = tensor_to_cv2(style_image)
-        src_img = tensor_to_cv2(source_image)
-        tgt_img = tensor_to_cv2(target_image)
+        style_img = batched_tensor_to_cv2_list(style_image)
+        src_img = batched_tensor_to_cv2_list(source_image)
+        tgt_img = batched_tensor_to_cv2_list(target_image)
 
         guides = []
 
@@ -174,8 +173,8 @@ class ES_Translate:
 
         print(f"{result.shape=}")
 
-        result_tensor = cv2_to_tensor(result)
-        error_tensor = cv2_to_tensor(error)
+        result_tensor = cv2_img_to_tensor(result)
+        error_tensor = cv2_img_to_tensor(error)
 
         print(f"{result_tensor.shape=}")
 
@@ -185,9 +184,182 @@ class ES_Translate:
         )
 
 
+class ES_VideoTransfer:
+    @classmethod
+    def INPUT_TYPES(s):
+        required = {
+            "source_video": ("IMAGE",),
+            "style_images": ("IMAGE",),
+            "style_idxes": ("STRING", {"default": "0"}),
+            "edge_method": (EDGE_METHODS, {"default": DEFAULT_EDGE_METHOD}),
+            "flow_model": (FLOW_MODELS, {"default": DEFAULT_FLOW_MODEL}),
+            "only_mode": (ONLY_MODES, {"default": ONLY_DEFAULT_MODE}),
+            "do_mask": (
+                "BOOLEAN",
+                {"default": False},
+            ),
+            "pre_mask": (
+                "BOOLEAN",
+                {"default": False},
+            ),
+            "return_masked_only": (
+                "BOOLEAN",
+                {"default": False},
+            ),
+            "feather": (
+                "INT",
+                {"default": 5, "min": 0, "step": 1},
+            ),
+            "style_weight": (
+                "FLOAT",
+                {"default": 6.0, "min": 0.1},
+            ),
+            "edge_weight": (
+                "FLOAT",
+                {"default": 1.0, "min": 0.1},
+            ),
+            "warp_weight": (
+                "FLOAT",
+                {"default": 0.5, "min": 0.1},
+            ),
+            "pos_weight": (
+                "FLOAT",
+                {"default": 2.0, "min": 0.1},
+            ),
+        }
+        required.update(EBTYPES)
+        required.update(
+            {
+                "use_gpu_hist_blend": (
+                    "BOOLEAN",
+                    {"default": False},
+                ),
+                "use_lsqr": (
+                    "BOOLEAN",
+                    {"default": True},
+                ),
+                "use_poisson_cupy": (
+                    "BOOLEAN",
+                    {"default": False},
+                ),
+                "poisson_maxiter": (
+                    "INT",
+                    {"default": 0, "min": 0, "step": 1},
+                ),
+            }
+        )
+        return {
+            "required": required,
+            "optional": {
+                "source_mask": ("IMAGE",),
+            },
+        }
+
+    RETURN_TYPES = (
+        "IMAGE",
+        "IMAGE",
+    )
+    RETURN_NAMES = (
+        "result_video",
+        "error_video",
+    )
+    FUNCTION = "todo"
+    CATEGORY = "EbSynth"
+
+    def todo(
+        self,
+        source_video: torch.Tensor,
+        style_images: torch.Tensor,
+        style_idxes: str,
+        edge_method: str,
+        flow_model: str,
+        only_mode: str,
+        # Masking params
+        do_mask: bool,
+        pre_mask: bool,
+        return_masked_only: bool,
+        feather: float,
+        # Ebsynth guide weights params
+        style_weight: float,
+        edge_weight: float,
+        warp_weight: float,
+        pos_weight: float,
+        # Ebsynth gen params
+        uniformity: float,
+        patch_size: int,
+        pyramid_levels: int,
+        search_vote_iters: int,
+        patch_match_iters: int,
+        extra_pass_3x3: bool,
+        # Blending params
+        use_gpu_hist_blend: bool,
+        use_lsqr: bool,
+        use_poisson_cupy: bool,
+        poisson_maxiter: int,
+        source_mask: torch.Tensor | None = None,
+    ):
+        img_frs_seq = batched_tensor_to_cv2_list(source_video)
+        stl_frs = batched_tensor_to_cv2_list(style_images)
+        stl_idxes = deserialize_integers(style_idxes)
+        if source_mask is not None:
+            msk_frs_seq = process_msk_lst(
+                batched_tensor_to_cv2_list(source_mask, color=cv2.COLOR_RGB2GRAY)
+            )
+        else:
+            msk_frs_seq = None
+
+        ezrunner = EzsynthBase(
+            style_frs=stl_frs,
+            style_idxes=stl_idxes,
+            img_frs_seq=img_frs_seq,
+            cfg=RunConfig(
+                only_mode=only_mode,
+                pre_mask=pre_mask,
+                return_masked_only=return_masked_only,
+                feather=feather,
+                uniformity=uniformity,
+                patchsize=patch_size,
+                pyramidlevels=pyramid_levels,
+                searchvoteiters=search_vote_iters,
+                patchmatchiters=patch_match_iters,
+                extrapass3x3=extra_pass_3x3,
+                img_wgt=style_weight,
+                edg_wgt=edge_weight,
+                wrp_wgt=warp_weight,
+                pos_wgt=pos_weight,
+                use_gpu=use_gpu_hist_blend,
+                use_lsqr=use_lsqr,
+                use_poisson_cupy=use_poisson_cupy,
+                poisson_maxiter=poisson_maxiter if poisson_maxiter > 0 else None,
+            ),
+            edge_method=edge_method,
+            raft_flow_model_name=flow_model,
+            do_mask=do_mask,
+            msk_frs_seq=msk_frs_seq,
+        )
+
+        stylized_frames, err_frames = ezrunner.run_sequences()
+
+        style_tensor = out_video(stylized_frames)
+        err_tensor = out_video(err_frames)
+
+        return (
+            style_tensor,
+            err_tensor,
+        )
+
+
 def serialize_floats(lst: list[float]):
     return ",".join(map(str, lst))
 
 
 def deserialize_floats(floats_str: str):
     return [float(w) for w in floats_str.split(",") if w.strip()]
+
+
+def serialize_integers(int_list):
+    return "_".join(map(str, int_list))
+
+
+def deserialize_integers(int_string):
+    return list(map(int, int_string.split("_")))
