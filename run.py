@@ -137,9 +137,9 @@ class ES_Translate:
         print(f"{source_image.shape=}")
         print(f"{target_image.shape=}")
 
-        style_img = batched_tensor_to_cv2_list(style_image)
-        src_img = batched_tensor_to_cv2_list(source_image)
-        tgt_img = batched_tensor_to_cv2_list(target_image)
+        style_img = batched_tensor_to_cv2_list(style_image)[0]
+        src_img = batched_tensor_to_cv2_list(source_image)[0]
+        tgt_img = batched_tensor_to_cv2_list(target_image)[0]
 
         guides = []
 
