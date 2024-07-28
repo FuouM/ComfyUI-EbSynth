@@ -295,7 +295,11 @@ class ES_VideoTransfer:
 
         img_frs_seq = batched_tensor_to_cv2_list(source_video)
         stl_frs = batched_tensor_to_cv2_list(style_images)
-        stl_idxes = deserialize_integers(style_idxes)
+        stl_idxes = sorted(deserialize_integers(style_idxes))
+        
+        if len(stl_frs) != len(stl_idxes):
+            raise ValueError(f"Style indices mismatch: There are {len(stl_frs)}, but only [{stl_idxes}]")
+        
         if source_mask is not None:
             print(f"{source_mask.shape=}")
             msk_frs_seq = process_msk_lst(
