@@ -1,2 +1,7 @@
-torch
+numpy
 cv2
+torch
+torchvision
+phycv
+scipy
+Pillow
