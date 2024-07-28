@@ -11,15 +11,15 @@ https://github.com/user-attachments/assets/aa3cd191-4eb2-4dc0-8213-2c763f1b3316
 
 ### ES Translate - ImageSynth
 
-[ebsynth_translate.json](workflow\ebsynth_translate.json)
+[ebsynth_translate.json](workflow/ebsynth_translate.json)
 
-![ES_Translate](workflow\workflow_ebsynth_translate.png)
+![ES_Translate](workflow/workflow_ebsynth_translate.png)
 
 ### ES Video Transfer - EzSynth
 
 You need to set the style frames' absolute indices. The indices should be in ascending order and separated by an underscore (`_`). Example: `0_1_2_3` for 4 style frames. The order of the style frames will be as how you loaded it. More specifically, it is their index in the batch IMAGES `torch.Tensor`.
 
-[ebsynth_video.json](workflow\ebsynth_video.json)
+[ebsynth_video.json](workflow/ebsynth_video.json)
 
 ![EbSynth Video Example](ebsynth_video_example.png)
 
