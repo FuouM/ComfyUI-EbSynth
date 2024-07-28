@@ -6,7 +6,6 @@
 """
 
 import cv2
-import numpy as np
 import torch
 
 from .constants import EBTYPES, MAX_GUIDES, ONLY_DEFAULT_MODE, ONLY_MODES
@@ -171,8 +170,6 @@ class ES_Translate:
         ezsynner = ImageSynthBase(**params)
         result, error = ezsynner.run(guides=guides)
 
-        print(f"{result.shape=}")
-
         result_tensor = cv2_img_to_tensor(result)
         error_tensor = cv2_img_to_tensor(error)
 
@@ -199,10 +196,6 @@ class ES_VideoTransfer:
                 {"default": False},
             ),
             "pre_mask": (
-                "BOOLEAN",
-                {"default": False},
-            ),
-            "return_masked_only": (
                 "BOOLEAN",
                 {"default": False},
             ),
@@ -277,7 +270,6 @@ class ES_VideoTransfer:
         # Masking params
         do_mask: bool,
         pre_mask: bool,
-        return_masked_only: bool,
         feather: float,
         # Ebsynth guide weights params
         style_weight: float,
@@ -298,10 +290,14 @@ class ES_VideoTransfer:
         poisson_maxiter: int,
         source_mask: torch.Tensor | None = None,
     ):
+        print(f"{source_video.shape=}")
+        print(f"{style_images.shape=}")
+
         img_frs_seq = batched_tensor_to_cv2_list(source_video)
         stl_frs = batched_tensor_to_cv2_list(style_images)
         stl_idxes = deserialize_integers(style_idxes)
         if source_mask is not None:
+            print(f"{source_mask.shape=}")
             msk_frs_seq = process_msk_lst(
                 batched_tensor_to_cv2_list(source_mask, color=cv2.COLOR_RGB2GRAY)
             )
@@ -315,7 +311,6 @@ class ES_VideoTransfer:
             cfg=RunConfig(
                 only_mode=only_mode,
                 pre_mask=pre_mask,
-                return_masked_only=return_masked_only,
                 feather=feather,
                 uniformity=uniformity,
                 patchsize=patch_size,
@@ -339,7 +334,6 @@ class ES_VideoTransfer:
         )
 
         stylized_frames, err_frames = ezrunner.run_sequences()
-
         style_tensor = out_video(stylized_frames)
         err_tensor = out_video(err_frames)
 

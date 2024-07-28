@@ -30,6 +30,8 @@ def cv2_img_to_tensor(np_array: np.ndarray):
 
 
 def cv2_to_a_tensor(np_arr: np.ndarray):
+    if np_arr.dtype != np.uint8:
+        np_arr = np_arr.astype(np.uint8)
     np_arr = cv2.cvtColor(np_arr, cv2.COLOR_BGR2RGB)
     np_arr = np_arr.astype(np.float32) / 255.0
     tensor = torch.from_numpy(np_arr)
