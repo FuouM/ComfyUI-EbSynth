@@ -13,8 +13,12 @@ from .Ezsynth.ezsynth.aux_classes import RunConfig
 from .Ezsynth.ezsynth.constants import (
     DEFAULT_EDGE_METHOD,
     DEFAULT_FLOW_MODEL,
+    DEFAULT_FLOW_ARCH,
     EDGE_METHODS,
+    FLOW_ARCHS,
     FLOW_MODELS,
+    EF_RAFT_MODELS,
+    FLOW_DIFF_MODEL,
 )
 from .Ezsynth.ezsynth.main_ez import EzsynthBase, ImageSynthBase
 from .utils import (
@@ -23,6 +27,11 @@ from .utils import (
     out_video,
     process_msk_lst,
 )
+
+flow_all_models = []
+flow_all_models.extend([f"RAFT_{model}" for model in FLOW_MODELS])
+flow_all_models.extend([f"EfRAFT_{model}" for model in EF_RAFT_MODELS])
+flow_all_models.append(f"FLOWDIFF_{FLOW_DIFF_MODEL}")
 
 
 def create_guide_arg(i: int):
@@ -296,10 +305,12 @@ class ES_VideoTransfer:
         img_frs_seq = batched_tensor_to_cv2_list(source_video)
         stl_frs = batched_tensor_to_cv2_list(style_images)
         stl_idxes = sorted(deserialize_integers(style_idxes))
-        
+
         if len(stl_frs) != len(stl_idxes):
-            raise ValueError(f"Style indices mismatch: There are {len(stl_frs)}, but only [{stl_idxes}]")
-        
+            raise ValueError(
+                f"Style indices mismatch: There are {len(stl_frs)}, but only [{stl_idxes}]"
+            )
+
         if source_mask is not None:
             print(f"{source_mask.shape=}")
             msk_frs_seq = process_msk_lst(
@@ -344,6 +355,194 @@ class ES_VideoTransfer:
         return (
             style_tensor,
             err_tensor,
+        )
+
+
+class ES_VideoTransferExtra:
+    @classmethod
+    def INPUT_TYPES(s):
+        required = {
+            "source_video": ("IMAGE",),
+            "style_images": ("IMAGE",),
+            "style_idxes": ("STRING", {"default": "0"}),
+            "edge_method": (EDGE_METHODS, {"default": DEFAULT_EDGE_METHOD}),
+            "flow_arch": (FLOW_ARCHS, {"default": DEFAULT_FLOW_ARCH}),
+            "flow_model": (flow_all_models, {"default": DEFAULT_FLOW_MODEL}),
+            "only_mode": (ONLY_MODES, {"default": ONLY_DEFAULT_MODE}),
+            "return_flow": (
+                "BOOLEAN",
+                {"default": False},
+            ),
+            "do_mask": (
+                "BOOLEAN",
+                {"default": False},
+            ),
+            "pre_mask": (
+                "BOOLEAN",
+                {"default": False},
+            ),
+            "feather": (
+                "INT",
+                {"default": 5, "min": 0, "step": 1},
+            ),
+            "style_weight": (
+                "FLOAT",
+                {"default": 6.0, "min": 0.1},
+            ),
+            "edge_weight": (
+                "FLOAT",
+                {"default": 1.0, "min": 0.1},
+            ),
+            "warp_weight": (
+                "FLOAT",
+                {"default": 0.5, "min": 0.1},
+            ),
+            "pos_weight": (
+                "FLOAT",
+                {"default": 2.0, "min": 0.1},
+            ),
+        }
+        required.update(EBTYPES)
+        required.update(
+            {
+                "use_gpu_hist_blend": (
+                    "BOOLEAN",
+                    {"default": False},
+                ),
+                "use_lsqr": (
+                    "BOOLEAN",
+                    {"default": True},
+                ),
+                "use_poisson_cupy": (
+                    "BOOLEAN",
+                    {"default": False},
+                ),
+                "poisson_maxiter": (
+                    "INT",
+                    {"default": 0, "min": 0, "step": 1},
+                ),
+            }
+        )
+        return {
+            "required": required,
+            "optional": {
+                "source_mask": ("IMAGE",),
+            },
+        }
+
+    RETURN_TYPES = (
+        "IMAGE",
+        "IMAGE",
+        "IMAGE",
+    )
+    RETURN_NAMES = (
+        "result_video",
+        "error_video",
+        "flow_video",
+    )
+    FUNCTION = "todo"
+    CATEGORY = "EbSynth"
+
+    def todo(
+        self,
+        source_video: torch.Tensor,
+        style_images: torch.Tensor,
+        style_idxes: str,
+        edge_method: str,
+        flow_arch: str,
+        flow_model: str,
+        only_mode: str,
+        return_flow: bool,
+        # Masking params
+        do_mask: bool,
+        pre_mask: bool,
+        feather: float,
+        # Ebsynth guide weights params
+        style_weight: float,
+        edge_weight: float,
+        warp_weight: float,
+        pos_weight: float,
+        # Ebsynth gen params
+        uniformity: float,
+        patch_size: int,
+        pyramid_levels: int,
+        search_vote_iters: int,
+        patch_match_iters: int,
+        extra_pass_3x3: bool,
+        # Blending params
+        use_gpu_hist_blend: bool,
+        use_lsqr: bool,
+        use_poisson_cupy: bool,
+        poisson_maxiter: int,
+        source_mask: torch.Tensor | None = None,
+    ):
+        print(f"{source_video.shape=}")
+        print(f"{style_images.shape=}")
+
+        img_frs_seq = batched_tensor_to_cv2_list(source_video)
+        stl_frs = batched_tensor_to_cv2_list(style_images)
+        stl_idxes = sorted(deserialize_integers(style_idxes))
+
+        if len(stl_frs) != len(stl_idxes):
+            raise ValueError(
+                f"Style indices mismatch: There are {len(stl_frs)}, but only [{stl_idxes}]"
+            )
+
+        if source_mask is not None:
+            print(f"{source_mask.shape=}")
+            msk_frs_seq = process_msk_lst(
+                batched_tensor_to_cv2_list(source_mask, color=cv2.COLOR_RGB2GRAY)
+            )
+        else:
+            msk_frs_seq = None
+
+        flow_model = flow_model[flow_model.index("_") + 1 :]
+
+        ezrunner = EzsynthBase(
+            style_frs=stl_frs,
+            style_idxes=stl_idxes,
+            img_frs_seq=img_frs_seq,
+            cfg=RunConfig(
+                only_mode=only_mode,
+                pre_mask=pre_mask,
+                feather=feather,
+                uniformity=uniformity,
+                patchsize=patch_size,
+                pyramidlevels=pyramid_levels,
+                searchvoteiters=search_vote_iters,
+                patchmatchiters=patch_match_iters,
+                extrapass3x3=extra_pass_3x3,
+                img_wgt=style_weight,
+                edg_wgt=edge_weight,
+                wrp_wgt=warp_weight,
+                pos_wgt=pos_weight,
+                use_gpu=use_gpu_hist_blend,
+                use_lsqr=use_lsqr,
+                use_poisson_cupy=use_poisson_cupy,
+                poisson_maxiter=poisson_maxiter if poisson_maxiter > 0 else None,
+            ),
+            edge_method=edge_method,
+            raft_flow_model_name=flow_model,
+            do_mask=do_mask,
+            msk_frs_seq=msk_frs_seq,
+            flow_arch=flow_arch,
+        )
+
+        stylized_frames, err_frames, flow_frames = ezrunner.run_sequences_full(
+            return_flow=return_flow
+        )
+        style_tensor = out_video(stylized_frames)
+        err_tensor = out_video(err_frames)
+
+        if not flow_frames:
+            flow_tensor = style_tensor
+        else:
+            flow_tensor = out_video(flow_frames)
+
+        return (
+            style_tensor,
+            err_tensor,
+            flow_tensor,
         )
 
 
