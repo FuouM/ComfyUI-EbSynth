@@ -25,6 +25,18 @@ You need to set the style frames' absolute indices. The indices should be in asc
 
 (This is not a workflow-embeded image)
 
+### ES Video Transfer Extra 
+
+Two new arguments are added:
+1. flow_arch: Architecture of the Optical Flow - `"RAFT", "EF_RAFT", "FLOW_DIFF"`
+2. flow_model: Choose the appropriate model for the architecture. 
+
+Read more details and download the models by following the instructions [here](https://github.com/FuouM/Ezsynth/blob/main/README.md#notable-things).
+
+![EbSynth Extra](ebsynth_extra_example.png)
+
+(This is not a workflow-embeded image)
+
 ## Arguments
 
 Refer to [FuouM/Ezsynth](https://github.com/FuouM/Ezsynth) for full documentation. These are the important ones:
