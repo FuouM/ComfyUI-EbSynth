@@ -27,13 +27,23 @@ You need to set the style frames' absolute indices. The indices should be in asc
 
 ### ES Video Transfer Extra 
 
-Two new arguments are added:
+Three new arguments are added:
 1. flow_arch: Architecture of the Optical Flow - `"RAFT", "EF_RAFT", "FLOW_DIFF"`
 2. flow_model: Choose the appropriate model for the architecture. 
 
+`warp_weight` and `pos_weight` affects the intensity of Optical Flow guides
+
 Read more details and download the models by following the instructions [here](https://github.com/FuouM/Ezsynth/blob/main/README.md#notable-things).
 
-![EbSynth Extra](ebsynth_extra_example.png)
+https://github.com/user-attachments/assets/7f43630f-c7c9-40d0-8745-58d1f7c84d4f
+
+Comparison of Optical Flow models
+
+3. `source_edge` (Optional): You can use edge preprocessors or anything as input. If this is given, `edge_method` is ignored and will use yours. `edge_weight` affects this intensity. 
+
+[ebsynth_extra.json](workflow/ebsynth_extra.json) | [ebsynth_extra_edges.json](workflow/ebsynth_extra_edges.json)
+
+![EbSynth Extra](ebsynth_extra_example_2.png)
 
 (This is not a workflow-embeded image)
 
@@ -96,3 +106,36 @@ jamriska - https://github.com/jamriska/ebsynth
 ```
 
 Trentonom0r3 - https://github.com/Trentonom0r3/Ezsynth
+
+https://github.com/princeton-vl/RAFT
+
+```
+RAFT: Recurrent All Pairs Field Transforms for Optical Flow
+ECCV 2020
+Zachary Teed and Jia Deng
+```
+
+https://github.com/n3slami/Ef-RAFT
+
+```
+@inproceedings{eslami2024rethinking,
+  title={Rethinking RAFT for efficient optical flow},
+  author={Eslami, Navid and Arefi, Farnoosh and Mansourian, Amir M and Kasaei, Shohreh},
+  booktitle={2024 13th Iranian/3rd International Machine Vision and Image Processing Conference (MVIP)},
+  pages={1--7},
+  year={2024},
+  organization={IEEE}
+}
+```
+
+https://github.com/LA30/FlowDiffuser
+
+```
+@inproceedings{luo2024flowdiffuser,
+  title={FlowDiffuser: Advancing Optical Flow Estimation with Diffusion Models},
+  author={Luo, Ao and Li, Xin and Yang, Fan and Liu, Jiangyu and Fan, Haoqiang and Liu, Shuaicheng},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={19167--19176},
+  year={2024}
+}
+```

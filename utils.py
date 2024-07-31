@@ -37,6 +37,8 @@ def cv2_to_a_tensor(np_arr: np.ndarray):
     tensor = torch.from_numpy(np_arr)
     return tensor
 
+def resize_cv2_list(np_lst: list[np.ndarray], sample_fr: np.ndarray):
+    return [cv2.resize(fr, (sample_fr.shape[1], sample_fr.shape[0])) for fr in np_lst]
 
 def out_video(predictions: list[np.ndarray]):
     out_tensor_list = []
@@ -50,6 +52,7 @@ def out_video(predictions: list[np.ndarray]):
 def process_msk_lst(msks: list[np.ndarray]):
     msk_arr_seq: list[np.ndarray] = []
     for msk_fr in msks:
-        _, msk = cv2.threshold(msk_fr, 1, 255, cv2.THRESH_BINARY)
-        msk_arr_seq.append(msk)
+        # _, msk = cv2.threshold(msk_fr, 1, 255, cv2.THRESH_BINARY)
+        # msk_arr_seq.append(msk)
+        msk_arr_seq.append(msk_fr)
     return msk_arr_seq
