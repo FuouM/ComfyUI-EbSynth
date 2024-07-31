@@ -47,6 +47,10 @@ Comparison of Optical Flow models
 
 (This is not a workflow-embeded image)
 
+https://github.com/user-attachments/assets/63e50272-aa5c-42a1-a5ec-46178cdf2981
+
+Comparison of Edge methods
+
 ## Arguments
 
 Refer to [FuouM/Ezsynth](https://github.com/FuouM/Ezsynth) for full documentation. These are the important ones:
