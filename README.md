@@ -106,3 +106,36 @@ jamriska - https://github.com/jamriska/ebsynth
 ```
 
 Trentonom0r3 - https://github.com/Trentonom0r3/Ezsynth
+
+https://github.com/princeton-vl/RAFT
+
+```
+RAFT: Recurrent All Pairs Field Transforms for Optical Flow
+ECCV 2020
+Zachary Teed and Jia Deng
+```
+
+https://github.com/n3slami/Ef-RAFT
+
+```
+@inproceedings{eslami2024rethinking,
+  title={Rethinking RAFT for efficient optical flow},
+  author={Eslami, Navid and Arefi, Farnoosh and Mansourian, Amir M and Kasaei, Shohreh},
+  booktitle={2024 13th Iranian/3rd International Machine Vision and Image Processing Conference (MVIP)},
+  pages={1--7},
+  year={2024},
+  organization={IEEE}
+}
+```
+
+https://github.com/LA30/FlowDiffuser
+
+```
+@inproceedings{luo2024flowdiffuser,
+  title={FlowDiffuser: Advancing Optical Flow Estimation with Diffusion Models},
+  author={Luo, Ao and Li, Xin and Yang, Fan and Liu, Jiangyu and Fan, Haoqiang and Liu, Shuaicheng},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={19167--19176},
+  year={2024}
+}
+```

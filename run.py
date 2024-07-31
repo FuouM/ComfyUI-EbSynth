@@ -25,7 +25,6 @@ from .utils import (
     batched_tensor_to_cv2_list,
     cv2_img_to_tensor,
     out_video,
-    process_msk_lst,
     resize_cv2_list,
 )
 
@@ -314,7 +313,9 @@ class ES_VideoTransfer:
 
         if source_mask is not None:
             print(f"{source_mask.shape=}")
-            msk_frs_seq = batched_tensor_to_cv2_list(source_mask, color=cv2.COLOR_RGB2GRAY)
+            msk_frs_seq = batched_tensor_to_cv2_list(
+                source_mask, color=cv2.COLOR_RGB2GRAY
+            )
         else:
             msk_frs_seq = None
 
