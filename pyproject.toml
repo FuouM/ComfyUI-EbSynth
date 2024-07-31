@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-ebsynth"
+description = "Run EbSynth, Fast Example-based Image Synthesis and Style Transfer, in ComfyUI."
+version = "1.0.0"
+license = {file = "LICENSE"}
+dependencies = ["numpy", "opencv-python", "torch", "torchvision", "phycv", "scipy", "Pillow"]
+
+[project.urls]
+Repository = "https://github.com/FuouM/ComfyUI-EbSynth"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI-EbSynth"
+Icon = ""
