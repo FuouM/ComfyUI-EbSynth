@@ -27,13 +27,23 @@ You need to set the style frames' absolute indices. The indices should be in asc
 
 ### ES Video Transfer Extra 
 
-Two new arguments are added:
+Three new arguments are added:
 1. flow_arch: Architecture of the Optical Flow - `"RAFT", "EF_RAFT", "FLOW_DIFF"`
 2. flow_model: Choose the appropriate model for the architecture. 
 
+`warp_weight` and `pos_weight` affects the intensity of Optical Flow guides
+
 Read more details and download the models by following the instructions [here](https://github.com/FuouM/Ezsynth/blob/main/README.md#notable-things).
 
-![EbSynth Extra](ebsynth_extra_example.png)
+https://github.com/user-attachments/assets/7f43630f-c7c9-40d0-8745-58d1f7c84d4f
+
+Comparison of Optical Flow models
+
+3. `source_edge` (Optional): You can use edge preprocessors or anything as input. If this is given, `edge_method` is ignored and will use yours. `edge_weight` affects this intensity. 
+
+[ebsynth_extra.json](workflow/ebsynth_extra.json) | [ebsynth_extra_edges.json](workflow/ebsynth_extra_edges.json)
+
+![EbSynth Extra](ebsynth_extra_example_2.png)
 
 (This is not a workflow-embeded image)
 

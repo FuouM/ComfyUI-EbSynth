@@ -26,6 +26,7 @@ from .utils import (
     cv2_img_to_tensor,
     out_video,
     process_msk_lst,
+    resize_cv2_list,
 )
 
 flow_all_models = []
@@ -313,9 +314,7 @@ class ES_VideoTransfer:
 
         if source_mask is not None:
             print(f"{source_mask.shape=}")
-            msk_frs_seq = process_msk_lst(
-                batched_tensor_to_cv2_list(source_mask, color=cv2.COLOR_RGB2GRAY)
-            )
+            msk_frs_seq = batched_tensor_to_cv2_list(source_mask, color=cv2.COLOR_RGB2GRAY)
         else:
             msk_frs_seq = None
 
@@ -427,6 +426,7 @@ class ES_VideoTransferExtra:
             "required": required,
             "optional": {
                 "source_mask": ("IMAGE",),
+                "source_edge": ("IMAGE",),
             },
         }
 
@@ -475,6 +475,7 @@ class ES_VideoTransferExtra:
         use_poisson_cupy: bool,
         poisson_maxiter: int,
         source_mask: torch.Tensor | None = None,
+        source_edge: torch.Tensor | None = None,
     ):
         print(f"{source_video.shape=}")
         print(f"{style_images.shape=}")
@@ -490,11 +491,21 @@ class ES_VideoTransferExtra:
 
         if source_mask is not None:
             print(f"{source_mask.shape=}")
-            msk_frs_seq = process_msk_lst(
-                batched_tensor_to_cv2_list(source_mask, color=cv2.COLOR_RGB2GRAY)
+            msk_frs_seq = batched_tensor_to_cv2_list(
+                source_mask, color=cv2.COLOR_RGB2GRAY
             )
         else:
             msk_frs_seq = None
+
+        edge_guides = None
+        if source_edge is not None:
+            print(f"{source_edge.shape=}")
+            edge_guides = resize_cv2_list(
+                batched_tensor_to_cv2_list(source_edge), img_frs_seq[0]
+            )
+            do_compute_edge = False
+        else:
+            do_compute_edge = True
 
         flow_model = flow_model[flow_model.index("_") + 1 :]
 
@@ -526,7 +537,11 @@ class ES_VideoTransferExtra:
             do_mask=do_mask,
             msk_frs_seq=msk_frs_seq,
             flow_arch=flow_arch,
+            do_compute_edge=do_compute_edge,
         )
+
+        if not do_compute_edge and edge_guides is not None:
+            ezrunner.edge_guides = edge_guides
 
         stylized_frames, err_frames, flow_frames = ezrunner.run_sequences_full(
             return_flow=return_flow
